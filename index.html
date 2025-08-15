@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPIc 모의고사</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 2rem;
+            flex-direction: column;
+        }
+        .container {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        .question-box {
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+            position: relative;
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            line-height: 1.75rem;
+        }
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .button {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            transition: background-color 0.2s, transform 0.2s;
+            cursor: pointer;
+            border: none;
+            color: white;
+            background-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .button:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .button:active {
+            transform: translateY(0);
+        }
+        .progress-text {
+            color: #4b5563;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+        .speak-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s;
+        }
+        .speak-button:hover {
+            color: #1f2937;
+        }
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            text-align: left;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        .modal-text {
+            font-size: 1rem;
+            line-height: 1.5rem;
+            color: #4b5563;
+            white-space: pre-wrap;
+        }
+        .modal-close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #9ca3af;
+            cursor: pointer;
+        }
+        .modal-speak-button {
+            position: absolute;
+            top: 1rem;
+            right: 3rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.2s;
+        }
+        .modal-speak-button:hover {
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">OPIc 모의고사</h1>
+        <div class="question-box">
+            <span id="speakButton" class="speak-button hidden">🔊</span>
+            <p id="question" class="question-text">시작하려면 '시작' 버튼을 누르세요.</p>
+        </div>
+        <div class="navigation-buttons">
+            <button id="startButton" class="button">시작</button>
+            <button id="prevButton" class="button hidden">뒤로가기</button>
+            <button id="nextButton" class="button hidden">다음 질문</button>
+        </div>
+        <button id="showAnswerButton" class="button hidden mt-4">답변 보기</button>
+        <p id="progress" class="progress-text"></p>
+    </div>
+
+    <!-- The Modal for the Answer -->
+    <div id="answerModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="modal-close-button" onclick="closeModal()">&times;</span>
+            <span class="modal-speak-button" onclick="speakAnswer()">&#129047;</span>
+            <h2 class="modal-title">샘플 답변</h2>
+            <p id="answerText" class="modal-text"></p>
+        </div>
+    </div>
+
+    <script>
+        // 오픽 질문과 답변 데이터를 주제별로 그룹화
+        const topicGroups = [
+            {
+                topic: "자기소개",
+                questions: [
+                    {
+                        q: "Tell me about yourself in detail. Let's start the interview now.",
+                        a: "Hi Eva, nice to meet you. I'm Harry from South Korea. I'm so excited to be here today. I'm such an in-person, so I hope the interview goes well."
+                    }
+                ]
+            },
+            {
+                topic: "집에서의 휴가",
+                questions: [
+                    {
+                        q: "When you spend your vacation at home, who usually visits you? What do you do together? Provide as many details as possible.",
+                        a: "When I stay at home during my vacation, I usually spend time alone. I really enjoy having time just to myself. I often watch a movie, read some books, and listen to some music. Sometimes, I try out a new recipe or just go for a walk to clear my mind. For me, a vacation at home is all about resting and recharging myself. I know it's simple, but it always makes me feel refreshed and happy."
+                    },
+                    {
+                        q: "In your background survey, you indicated that you prefer to stay at home during vacations. How do you spend your vacations at home? What do you usually do? Give me as many details as possible.",
+                        a: "I prefer staying at home during my vacation because, as I mentioned, I'm more of an introvert and I really enjoy having time to myself. Traveling around can be fun, but it takes a lot of effort, time, and money, so I choose to stay at home. I spend most of my time alone, watching TV shows, reading books, and trying out new recipes. My room is kind of messy, so I also try to organize it. That's it."
+                    },
+                    {
+                        q: "Specifically discuss the things that you did while on the last vacation that you spent at home. Give me a detailed description of what you did from the beginning to the end of the day, all of the activities you participated in, and all of the people you saw that day.",
+                        a: "I had a vacation at home a few weeks ago when one of my friends came over. We had so much fun. At first, we decided to chill out and relax inside, but we happened to cook a meal—pasta, which we both like. We also had a movie night with some snacks. It wasn't anything special, but we really enjoyed it."
+                    }
+                ]
+            },
+            {
+                topic: "은행",
+                questions: [
+                    {
+                        q: "Tell me about the banks in your country. What do they typically look like? Where are they usually located?",
+                        a: "Banks in my country are modern and so easy to access. They're usually located in busy areas. Most banks in my country open from 9:00 a.m. to 4:00 p.m., as far as I know. When you walk into a bank, the first thing you see is ATMs, where you can deposit or withdraw money. There are also several customer service desks standing in a row where staff can help you with banking services."
+                    },
+                    {
+                        q: "Banks have definitely changed over time. Tell me about a bank you remember from your childhood. What was the bank like? How was it different from banks today?",
+                        a: "Banks have definitely changed a lot over the years. When I was younger, every time I went to a bank, the lines were so long. I had to wait forever to ask just simple questions. As far as I remember, there was a lot of paperwork to fill out. But now, with the mobile banking system, I can do most things on my phone in a few seconds, which is super convenient. ATMs have also improved a lot. I think overall, banking has become faster and more convenient."
+                    },
+                    {
+                        q: "Sometimes problems arise when dealing with the bank. Tell me in detail about a problem you had that involved your bank. Maybe the bank was closed when you needed it to be open. Maybe the bank made some kind of mistake. Tell me the story of a time when you had to solve a problem involving your bank.",
+                        a: "I once had a really frustrating experience at the bank when I forgot my ID. I went to a bank to deal with some of my banking services, but when I got there, I realized I didn't have my ID with me. The teller said they couldn't help me without it. It was so frustrating because I had waited in line for a long time, but I had no choice but to go back home, grab my ID, and come back. Luckily, there was no long wait the second time, so I finished everything quickly."
+                    }
+                ]
+            },
+            {
+                topic: "음악",
+                questions: [
+                    {
+                        q: "You indicated in the survey that you listen to music. What kinds of music do you listen to? Who are some of your favorite musicians or composers?",
+                        a: "These days, I'm really into K-pop, and one of my favorite K-pop groups is definitely NewJeans. Their songs are super cool and unique, and they have a unique style. What I like about them is that they always try new things with their music and performances. Their music videos are super creative, and they also have these cool choreographies. Recently, they posted a video of a song that they wrote themselves on social media, and I absolutely love it. If you haven't heard of them yet, you should definitely check them out."
+                    },
+                    {
+                        q: "When did you first become interested in music? What kinds of music did you like first? Tell me how your interest in music developed from your childhood until today.",
+                        a: "I used to love pop music when I was a kid. I still remember my dad introducing me to Bruno Mars, who I still like. Since then, pop music is one of my go-to types of music. But as time goes by, I started listening to different genres like rock and hip hop. But now, I like K-pop the most."
+                    },
+                    {
+                        q: "Could you think back to a particularly memorable time when you heard live music? Describe that experience in detail. When was it? Where were you? Who were you with? Who did you hear? What happened that made that performance so memorable?",
+                        a: "I went to see NewJeans at their concert last year. I went to Tokyo with one of my friends who also loved NewJeans. When we got there, we could immediately feel the incredible atmosphere around us. The best part was when they performed my favorite song and the whole crowd sang along. It literally gave me goosebumps. It was a super cool experience, and I would love to go to another concert like that in the future."
+                    }
+                ]
+            },
+            {
+                topic: "해외여행",
+                questions: [
+                    {
+                        q: "Can you describe for me one of the countries or cities you visited? What does it look like, and what are the people like there?",
+                        a: "I visited Japan a few years ago, and the geography there was quite different from home. For example, there were so many forests and mountains, unlike my home country, which is mostly flat. The weather was much warmer and drier than where I'm from. Also, I noticed that people in Japan were so nice and polite."
+                    },
+                    {
+                        q: "On your background survey, you indicated that you enjoy overseas travel. Where do you like to visit? Which do you prefer, mountains or beaches? Describe the place you like to visit and why you like to go there.",
+                        a: "I don't travel very often. But if I do travel, I usually prefer going to a resort. I especially love places with a beautiful beach, so I often go to places like Osaka. I prefer the beach over the mountains, and I enjoy swimming and having a cocktail while looking at the sea. I feel so refreshed both physically and mentally when I take a rest in beautiful nature away from the busy city."
+                    },
+                    {
+                        q: "What is the most memorable experience you have had while traveling? When and where did you go? What happened? Why was it memorable? Describe the experience in detail.",
+                        a: "The most memorable travel experience I've had was two years ago when I went to Osaka, Japan, with my friend. We were lost and wandering around a subway station when an old Japanese lady kindly approached us and gave us directions. She even took us to a station employee to help us buy a ticket. We couldn't communicate well, but her kind gesture really touched us. Thanks to her warm heart, Osaka has become an even more special city in my memory"
+                    }
+                ]
+            },
+            {
+                topic: "롤플레이",
+                questions: [
+                    {
+                        q: "I'd like to give you a situation and ask you to act it out. You are going to meet your friend living overseas. Call your friend and ask two or three questions about geography.",
+                        a: "Oh, hey! I'm planning to visit your country soon. I can't wait. Since this is my first time to visit your country, I have a few questions to ask about geography. Is it mostly flat, or are there a lot of hills? What's the weather like? I'm thinking of going around this summer. Do you think that's a good time to visit? And lastly, are there any places you would recommend that I check out?"
+                    },
+                    {
+                        q: "I'm sorry, but there is a problem which I need you to resolve. You are unable to meet your friend who is living in another country. Call your friend and give three or four alternatives to address the problem.",
+                        a: "Hello, I'm really sorry to say this, but something came up and I won't be able to make it. But I would like to make up for it. How about we get together later this year? Or maybe I could visit you if you come here. Let me know what works for you."
+                    },
+                    {
+                        q: "I'd like to give you a situation to ac it out. You want to buy a new MP3 Player and your friend bought a new mp3 player recently. Ask 3 or 4 Question to the friend about a new MP3 Player you want to buy.",
+                        a: "Hey! I'm thinking of buying a new MP3 player, and I heard you recently bought one. Could I ask you a few questions about it? How long does the battery last? And how much storage does it have? Also, are there any pros or cons you've noticed while using it?"
+                    },
+                    {
+                        q: "I'm sorry, but there is a problem I need to resolve. You have borrowed your friend's mp3 player but broke it by accident. Call your friend and explain the situation. Give 2-3 alternatives that will help solve the situation.",
+                        a: "Hey, it's me. I'm so sorry, but something bad happened. I borrowed your MP3 player, but I accidentally dropped it and broke it. I am so sorry. I can buy you a brand-new one, or I can cover all the repair costs. Just let me know what works for you."
+                    }
+                ]
+            },
+            {
+                topic: "지리",
+                questions: [
+                    {
+                        q: "Describe the geography in your country. Are there mountains there? Is the seashore part of the geography? Are there lakes? Discuss all the details you can about the geography and landscape in your country.",
+                        a: "My country has a lot of mountains, covering about 70% of the land. In the east, there are many tall mountains, while the west has more flat land. We have three seas: the East Sea, West Sea, and South Sea. The East Sea is deep, the West Sea is famous for its tidal flats, and the South Sea has a lot of islands. We don't have many big natural lakes, but there are many artificial lakes made from rivers."
+                    }
+                ]
+            },
+            {
+                topic: "캠핑",
+                questions: [
+                    {
+                        q: "In your background survey, you indicated that you like going camping. How often do you go camping, and what time of the year do you typically go? Who do you usually go with? What do you like to go on camping trips?",
+                        a: "I go camping two or three times a year, and I usually prefer going in the fall. The weather is perfect for camping, and there are no mosquitos. I usually go with my friends or family, and it's a lot of fun to cook together and sit around a campfire and talk. I love spending time in nature because it makes me feel so peaceful and refreshed."
+                    },
+                    {
+                        q: "When was the last time you went camping? Where did you go? Who did you go with? Describe what you did on your camping trip in as much detail as you can.",
+                        a: "The last time I went camping was last summer. I went to a famous campsite in Gangwon-do with my friends. At first when we reached there, I set up the tent, and he cooked the meal. Because we were super starving on the way. In the evening, As for the result, we had a big barbecue party, where we grilled some meat and roasted marshmallows over the campfire while chatting for a long time. The next morning, we woke up early and just walked for I felt so far away from the city. I was so happy to spend some time with my friends in nature."
+                    },
+                    {
+                        q: "These days, camping is very popular. What are the recent gears? What are their special features?",
+                        a: "Camping has definitely become popular these days, and one popular item that I noticed is the portable camping stove. You know, they're lightweight and so easy to use. Basically, you can cook with them and boil some water with them. They also have this cool feature like a grill. You can cook different types of food with them. I think it's super cool, and they're very small and don't take up much space, which is a great thing for many campers."
+                    },
+                    {
+                        q: "A lot of people are worried that the camping site might have some environmental issues among campers. What do you say about this issue?",
+                        a: "I know this is a big concern. As more people go camping, some places are definitely getting damaged because too many people go there. Many campers are trying to protect the environment by not leaving anything behind. For example, they use eco-friendly products and pick up all the trash. But I don't think everyone follows these rules. It's really important for us to take care of nature so that we can keep enjoying camping in the future."
+                    }
+                ]
+            },
+            {
+                topic: "공원",
+                questions: [
+                    {
+                        q: "In your background survey, you mentioned that you like going to parks. Please tell me about the park you like to go to.. Where is it located, and what does it look like? What makes it special?",
+                        a: "I try to visit the park as many times as I can. I enjoy spending time with my wife at the park. sometimes I want to feel like that I`m somewhere far from the city. My wife and I favorite park is 광교 lake park. It takes just 10 minutes to drive from my house. this is huge and there are many natural things such as two lakes, big trees, and a wide grassy area. when we go there, we love enjoying the picnic on the grassy area with blanket spread out."
+                    },
+                    {
+                        q: "What kind of activities do you usually do at the park? Do you take walks or exercise at the park? Do you prefer to go there with others, or do you prefer to go alone? Please describe a typical day at the park.",
+                        a: "My company has special ground rule that people do team-bluid activity once a month. So last month, I messaged and suggested my co-worker, we went to the 한강 park. because the park is closed to our office, and have very beautiful sunset. On the day, we brought a lunch box and visited the park. Fortunately, the weather was perfect. After enjoying lunch, some people played badminton, and other people sat around and talked with coffee and beer."
+                    }
+                ]
+            },
+            {
+                topic: "커피숍",
+                questions: [
+                    {
+                        q: "In your background survey, you indicated that you like going out for coffee. When do you usually go to coffee shops? What do you typically order, and what do you do while you are there?",
+                        a: "I usually go to a coffee shop on a weekend afternoon or after work. I mostly order an Ice Americano, but sometimes I go for a Vanilla Latte when I want something sweet. While I'm there, I love chatting with my friends, or I just do some work on my macbook. Sometimes I just go alone and read a book quietly. For me, drinking delicious coffee is all about resting and recharging myself."
+                    },
+                    {
+                        q: "Tell me about a memorable experience you have had at a coffee shop. When and where was it? Who were you with? What happened? Talk about the experience in detail, and explain why it was so memorable.",
+                        a: "The most memorable experience I've had at a coffee shop was just last Sunday when I went to a new cafe in my neighborhood. The cafe was so popular that I had to wait in a long line. Finally, when it was my turn to order, I realized that I didn't have my wallet with me. I was so embarrassed. So, I had no choice but to go back home and get it. When I finally went back and got coffee, it tasted extra special."
+                    }
+                ]
+            },
+            {
+                topic: "집",
+                questions: [
+                    {
+                        q: "Please tell me about your house. What’s your favorite room? What does it look like? Why do you like that room?",
+                        a: "I live in an apartment, and my favorite room is definitely my bedroom. It's not that big, but I really love its cozy and comfortable atmosphere. One of the walls is painted in my favorite sky-blue color, and the small window lets in a lot of morning sunlight. There's also a small lamp next to my bed that I use for reading at night. Since the room is all mine, I feel so relaxed and peaceful and can end my day comfortably."
+                    },
+                    {
+                        q: "Compare the home you lived in before to the one you live in now. What are the differences between those two homes? Provide me with as many details as possible.",
+                        a: "I used to live in a villa, and now I live in an apartment. The biggest differences are the security and the facilities. My old place didn't have a good security system, so I was a little worried sometimes. But my current apartment has a security guard and a great access system, so I feel much safer. Also, there are so many facilities in my apartment complex, like a gym and a library, which is super convenient. On more thing, parking was a big problem at my old place, but now I don't have to worry about parking at all."
+                    }
+                ]
+            }
+        ];
+
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        let shuffledQuestions = [];
+        let currentQuestionIndex = -1;
+
+        const questionElement = document.getElementById('question');
+        const progressElement = document.getElementById('progress');
+        const startButton = document.getElementById('startButton');
+        const nextButton = document.getElementById('nextButton');
+        const prevButton = document.getElementById('prevButton');
+        const showAnswerButton = document.getElementById('showAnswerButton');
+        const speakButton = document.getElementById('speakButton');
+        const answerModal = document.getElementById('answerModal');
+        const answerTextElement = document.getElementById('answerText');
+
+        // 상태 업데이트
+        function updateUI() {
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                if (currentQuestionIndex === -1) {
+                    questionElement.textContent = "시작하려면 '시작' 버튼을 누르세요.";
+                    progressElement.textContent = "";
+                    prevButton.classList.add('hidden');
+                    nextButton.classList.add('hidden');
+                    showAnswerButton.classList.add('hidden');
+                    speakButton.classList.add('hidden');
+                    startButton.classList.remove('hidden');
+                } else {
+                    questionElement.textContent = shuffledQuestions[currentQuestionIndex].q;
+                    progressElement.textContent = `${currentQuestionIndex + 1} / ${shuffledQuestions.length}`;
+                    startButton.classList.add('hidden');
+                    nextButton.classList.remove('hidden');
+                    showAnswerButton.classList.remove('hidden');
+                    speakButton.classList.remove('hidden');
+                    prevButton.classList.toggle('hidden', currentQuestionIndex === 0);
+                }
+            } else {
+                questionElement.textContent = "모든 질문을 마쳤습니다. 다시 시작하려면 '다시 시작' 버튼을 누르세요.";
+                progressElement.textContent = "";
+                nextButton.classList.add('hidden');
+                prevButton.classList.add('hidden');
+                showAnswerButton.classList.add('hidden');
+                speakButton.classList.add('hidden');
+                startButton.classList.remove('hidden');
+                startButton.textContent = "다시 시작";
+            }
+        }
+
+        // 질문 음성으로 읽어주기
+        function speakQuestion() {
+            if (shuffledQuestions[currentQuestionIndex] && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(shuffledQuestions[currentQuestionIndex].q);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 답변 팝업 열기
+        function showAnswer() {
+            if (currentQuestionIndex >= 0 && currentQuestionIndex < shuffledQuestions.length) {
+                answerTextElement.textContent = shuffledQuestions[currentQuestionIndex].a;
+                answerModal.classList.remove('hidden');
+            }
+        }
+
+        // 답변 팝업 닫기
+        function closeModal() {
+            answerModal.classList.add('hidden');
+        }
+
+        // 답변 음성으로 읽어주기
+        function speakAnswer() {
+            if (answerTextElement.textContent && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(answerTextElement.textContent);
+                utterance.lang = 'en-US'; // 영어로 설정
+                utterance.rate = 0.8; // 음성 속도를 0.8배로 설정 (기본값 1.0)
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // 다음 질문으로 이동
+        function nextQuestion() {
+            currentQuestionIndex++;
+            updateUI();
+        }
+
+        // 이전 질문으로 이동
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                updateUI();
+            }
+        }
+
+        // 시작 버튼 클릭 이벤트 (모의고사 시작 및 질문 셔플)
+        startButton.addEventListener('click', () => {
+            // 질문 그룹 셔플
+            shuffleArray(topicGroups);
+            shuffledQuestions = [];
+            // 각 그룹 내 질문 셔플 및 병합
+            topicGroups.forEach(group => {
+                shuffleArray(group.questions);
+                shuffledQuestions = shuffledQuestions.concat(group.questions);
+            });
+            currentQuestionIndex = 0;
+            updateUI();
+            startButton.textContent = "시작";
+        });
+
+        // 다음 질문 버튼 클릭 이벤트
+        nextButton.addEventListener('click', nextQuestion);
+
+        // 이전 질문 버튼 클릭 이벤트
+        prevButton.addEventListener('click', prevQuestion);
+
+        // 답변 보기 버튼 클릭 이벤트
+        showAnswerButton.addEventListener('click', showAnswer);
+
+        // 음성 재생 버튼 클릭 이벤트
+        speakButton.addEventListener('click', speakQuestion);
+
+    </script>
+</body>
+</html>
