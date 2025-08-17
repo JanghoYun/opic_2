@@ -144,6 +144,25 @@
         .modal-speak-button:hover {
             color: #1f2937;
         }
+        
+        .translation-tooltip {
+            position: absolute;
+            background-color: #1f2937;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            z-index: 1001;
+            max-width: 300px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .translation-tooltip.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -171,6 +190,9 @@
             <p id="answerText" class="modal-text"></p>
         </div>
     </div>
+
+    <!-- 번역 툴팁 -->
+    <div id="translationTooltip" class="translation-tooltip"></div>
 
     <script>
         // 오픽 질문과 답변 데이터를 주제별로 그룹화
@@ -364,6 +386,7 @@
         const speakButton = document.getElementById('speakButton');
         const answerModal = document.getElementById('answerModal');
         const answerTextElement = document.getElementById('answerText');
+        const translationTooltip = document.getElementById('translationTooltip');
 
         // 상태 업데이트
         function updateUI() {
@@ -410,6 +433,9 @@
         // 답변 팝업 열기
         function showAnswer() {
             if (currentQuestionIndex >= 0 && currentQuestionIndex < shuffledQuestions.length) {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
                 answerTextElement.textContent = shuffledQuestions[currentQuestionIndex].a;
                 answerModal.classList.remove('hidden');
             }
@@ -417,6 +443,9 @@
 
         // 답변 팝업 닫기
         function closeModal() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
             answerModal.classList.add('hidden');
         }
 
@@ -433,6 +462,9 @@
 
         // 다음 질문으로 이동
         function nextQuestion() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
             currentQuestionIndex++;
             updateUI();
         }
@@ -440,6 +472,9 @@
         // 이전 질문으로 이동
         function prevQuestion() {
             if (currentQuestionIndex > 0) {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                }
                 currentQuestionIndex--;
                 updateUI();
             }
@@ -471,6 +506,66 @@
 
         // 음성 재생 버튼 클릭 이벤트
         speakButton.addEventListener('click', speakQuestion);
+
+        // 창이 닫힐 때 음성 중지
+        window.addEventListener('beforeunload', () => {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        });
+
+        // 페이지가 숨겨질 때도 음성 중지 (탭 전환 등)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        });
+
+        // 영어 단어 번역 기능
+        async function translateWord(text) {
+            try {
+                const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await response.json();
+                return data[0][0][0];
+            } catch (error) {
+                return '번역 실패';
+            }
+        }
+
+        // 선택된 텍스트 번역
+        function handleTextSelection() {
+            const selection = window.getSelection();
+            if (selection.toString().trim()) {
+                const selectedText = selection.toString().trim();
+                
+                if (selectedText.length > 0 && /[a-zA-Z]/.test(selectedText)) {
+                    const range = selection.getRangeAt(0);
+                    const rect = range.getBoundingClientRect();
+                    
+                    translateWord(selectedText).then(translation => {
+                        translationTooltip.textContent = `${selectedText} → ${translation}`;
+                        translationTooltip.style.left = `${rect.left + window.scrollX}px`;
+                        translationTooltip.style.top = `${rect.bottom + window.scrollY + 10}px`;
+                        translationTooltip.classList.add('show');
+                    });
+                }
+            }
+        }
+
+        // 마우스 업 이벤트로 텍스트 선택 감지
+        document.addEventListener('mouseup', handleTextSelection);
+
+        // 클릭 시 툴팁 숨기기
+        document.addEventListener('click', () => {
+            translationTooltip.classList.remove('show');
+        });
+
+        // ESC 키로 툴팁 숨기기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                translationTooltip.classList.remove('show');
+            }
+        });
 
     </script>
 </body>
