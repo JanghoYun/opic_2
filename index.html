@@ -3,192 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPIc 모의고사</title>
+    <title>질문은행 · OPIc AL</title>
     
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 2rem;
-            flex-direction: column;
-        }
-        .container {
-            background-color: white;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-        }
-        .question-box {
-            min-height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f9fafb;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid #e5e7eb;
-            text-align: left;
-            position: relative;
-        }
-        .question-text {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937;
-            line-height: 1.75rem;
-        }
-        .navigation-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-        .button {
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            border-radius: 0.75rem;
-            transition: background-color 0.2s, transform 0.2s;
-            cursor: pointer;
-            border: none;
-            color: white;
-            background-color: #3b82f6;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .button:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
-        }
-        .button:active {
-            transform: translateY(0);
-        }
-        .progress-text {
-            color: #4b5563;
-            font-weight: 500;
-            margin-top: 1rem;
-        }
-        .speak-button {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-            transition: color 0.2s;
-        }
-        .speak-button:hover {
-            color: #1f2937;
-        }
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            max-width: 600px;
-            width: 90%;
-            position: relative;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            text-align: left;
-            overflow-y: auto;
-            max-height: 80vh;
-        }
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: #1f2937;
-        }
-        .modal-text {
-            font-size: 1rem;
-            line-height: 1.5rem;
-            color: #4b5563;
-            white-space: pre-wrap;
-        }
-        .modal-close-button {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #9ca3af;
-            cursor: pointer;
-        }
-        .modal-speak-button {
-            position: absolute;
-            top: 1rem;
-            right: 3rem;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #6b7280;
-            transition: color 0.2s;
-        }
-        .modal-speak-button:hover {
-            color: #1f2937;
-        }
-        
-        .translation-tooltip {
-            position: absolute;
-            background-color: #1f2937;
-            color: white;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            z-index: 1001;
-            max-width: 300px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .translation-tooltip.show {
-            opacity: 1;
-        }
-    body{margin:0}.hidden{display:none!important}.text-3xl{font-size:1.875rem}.font-bold{font-weight:700}.mb-6{margin-bottom:1.5rem}.mt-4{margin-top:1rem}.text-gray-800{color:#1f2937}*{box-sizing:border-box}.practice-options{display:flex;gap:12px;flex-wrap:wrap;text-align:left;margin:20px 0}.practice-options label{flex:1;min-width:160px;font-size:14px}.practice-options select{display:block;width:100%;padding:10px;margin-top:5px;border:1px solid #d1d5db;border-radius:6px;font:inherit}a{color:#2563eb}.practice-note{font-size:14px;color:#4b5563;line-height:1.7}.question-box{padding-top:3.5rem}#questionMeta{font-size:13px;color:#4b5563;margin:16px 0}.modal-content{max-height:85vh;overflow:auto}.question-text{overflow-wrap:anywhere}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #2563eb;outline-offset:3px}@media(max-width:600px){body{padding:14px}.container{padding:20px}.navigation-buttons{gap:8px;flex-wrap:wrap}.button{padding:12px 16px}.question-box{padding:48px 16px 20px}.modal-content{width:calc(100% - 28px);padding:24px}.question-text{font-size:18px;line-height:1.65}}
-</style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" href="site.css">
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">OPIc 모의고사</h1><p class="practice-note">기존 28문항 + 새 예상 연습 28문항 · 15개 주제<br>모든 예시답변은 AL 목표(150~200단어, 약 1분 30초~2분)에 맞춰 새로 썼습니다. 공식 기출이 아닌 연습 자료입니다.</p><p><a href="./question-guide.html">질문·예시답변 가이드와 시험 조사 보기</a></p><p><a href="./mock-exam.html">15문항 랜덤 모의고사 · 내 답변 녹음</a></p><div class="practice-options"><label for="sourceFilter">문항 범위<select id="sourceFilter"><option value="all">전체 56문항</option><option value="original">기존 28문항</option><option value="predicted">새 예상 연습 28문항</option></select></label><label for="topicFilter">주제<select id="topicFilter"><option value="전체">전체 주제</option><option>자기소개</option><option>집에서의 휴가</option><option>은행</option><option>음악</option><option>해외여행</option><option>롤플레이</option><option>지리</option><option>캠핑</option><option>공원</option><option>커피숍</option><option>집</option><option>날씨</option><option>교통</option><option>재활용</option><option>스마트폰</option></select></label></div><p id="questionMeta" role="status">선택한 범위로 연습을 시작하세요.</p>
+    <header class="site-nav"><div class="inner"><a class="brand" href="./index.html">OPIc<span>AL</span></a><nav aria-label="주요 메뉴"><a href="./index.html" aria-current="page">질문은행</a><a href="./mock-exam.html">모의고사</a><a href="./question-guide.html">가이드</a></nav></div></header>
+    <main class="container">
+        <h1>질문은행</h1>
+        <p class="page-lead">질문을 듣고 먼저 소리 내어 답한 뒤, AL 예시답변과 비교하세요. 56문항 · 15개 주제</p>
+        <div class="practice-options"><label for="sourceFilter">문항 범위<select id="sourceFilter"><option value="all">전체 56문항</option><option value="original">기존 28문항</option><option value="predicted">새 예상 연습 28문항</option></select></label><label for="topicFilter">주제<select id="topicFilter"><option value="전체">전체 주제</option><option>자기소개</option><option>집에서의 휴가</option><option>은행</option><option>음악</option><option>해외여행</option><option>롤플레이</option><option>지리</option><option>캠핑</option><option>공원</option><option>커피숍</option><option>집</option><option>날씨</option><option>교통</option><option>재활용</option><option>스마트폰</option></select></label><label for="voiceSpeed">음성 속도<select id="voiceSpeed"><option value="0.75">천천히 · 0.75배</option><option value="0.9">조금 천천히 · 0.9배</option><option value="1" selected>실제 속도 · 1배</option><option value="1.1">조금 빠르게 · 1.1배</option></select></label></div>
+        <p id="questionMeta" role="status">범위를 고르고 시작을 누르세요.</p>
         <div class="question-box">
-            <span id="speakButton" class="speak-button hidden">🔊</span>
+            <button type="button" id="speakButton" class="speak-button hidden">🔊 질문 듣기</button>
             <p id="question" class="question-text">시작하려면 '시작' 버튼을 누르세요.</p>
         </div>
-        <div class="navigation-buttons">
-            <button id="startButton" class="button">시작</button>
-            <button id="prevButton" class="button hidden">뒤로가기</button>
-            <button id="nextButton" class="button hidden">다음 질문</button>
-        </div>
-        <button id="showAnswerButton" class="button hidden mt-4">답변 보기</button>
+        <div class="progress-bar" aria-hidden="true"><span id="progressFill"></span></div>
         <p id="progress" class="progress-text"></p>
-    </div>
+        <div class="navigation-buttons">
+            <button id="startButton" class="button primary">시작</button>
+            <button id="prevButton" class="button hidden">이전</button>
+            <button id="nextButton" class="button primary hidden">다음 질문</button>
+        </div>
+        <button id="showAnswerButton" class="button hidden">AL 예시답변 보기</button>
+        <h2>다른 연습</h2>
+        <div class="quick-links">
+            <a href="./mock-exam.html">15문항 모의고사<span>실전처럼 듣고 녹음하기 · 다시 듣기 1회</span></a>
+            <a href="./question-guide.html">AL 가이드<span>AL 전략, 문항별 녹음과 섀도잉</span></a>
+        </div>
+    </main>
 
-    <!-- The Modal for the Answer -->
-    <div id="answerModal" class="modal hidden">
+    <div id="answerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="answerTitle">
         <div class="modal-content">
-            <span class="modal-close-button" onclick="closeModal()">&times;</span>
-            <span class="modal-speak-button" onclick="speakAnswer()">&#129047;</span>
-            <h2 class="modal-title">AL 예시답변</h2>
-            <p id="answerText" class="modal-text"></p>
-            <p id="tipText" class="modal-text" style="margin-top:1rem;padding:1rem;background:#eff6ff;border-radius:.5rem"></p>
+            <div class="modal-header">
+                <h2 id="answerTitle" class="modal-title">AL 예시답변</h2>
+                <button type="button" class="modal-speak-button" onclick="speakAnswer()">▶ 답변 듣기</button>
+                <button type="button" class="modal-close-button" onclick="closeModal()" aria-label="닫기">×</button>
+            </div>
+            <p id="answerText" class="modal-text" lang="en"></p>
+            <p id="tipText" class="modal-text"></p>
         </div>
     </div>
 
@@ -196,6 +50,7 @@
     <div id="translationTooltip" class="translation-tooltip"></div>
 
     <script src="data.js"></script>
+    <script src="voice.js"></script>
     <script>
         // 오픽 질문과 답변 데이터를 주제별로 그룹화
         const topicGroups = [...new Set(QUESTIONS.map(x => x.topic))].map(topic => ({ topic, questions: QUESTIONS.filter(x => x.topic === topic) }));
@@ -228,6 +83,7 @@
                 if (currentQuestionIndex === -1) {
                     questionElement.textContent = "시작하려면 '시작' 버튼을 누르세요.";
                     progressElement.textContent = "";
+                    document.getElementById('progressFill').style.width = '0';
                     prevButton.classList.add('hidden');
                     nextButton.classList.add('hidden');
                     showAnswerButton.classList.add('hidden');
@@ -238,6 +94,7 @@
                     const item=shuffledQuestions[currentQuestionIndex];
                     document.querySelector('#questionMeta').textContent=item.topic+' · '+(item.source==='predicted'?'새 예상 연습 · '+item.type:'기존 문항');
                     progressElement.textContent = `${currentQuestionIndex + 1} / ${shuffledQuestions.length}`;
+                    document.getElementById('progressFill').style.width = ((currentQuestionIndex + 1) / shuffledQuestions.length * 100) + '%';
                     startButton.classList.add('hidden');
                     nextButton.classList.remove('hidden');
                     showAnswerButton.classList.remove('hidden');
@@ -258,19 +115,15 @@
 
         // 질문 음성으로 읽어주기
         function speakQuestion() {
-            if (shuffledQuestions[currentQuestionIndex] && 'speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(shuffledQuestions[currentQuestionIndex].q);
-                utterance.lang = 'en-US';
-                window.speechSynthesis.speak(utterance);
-            }
+            const item = shuffledQuestions[currentQuestionIndex];
+            if (item) OpicVoice.play(item.id, 'q', { rate: Number(document.getElementById('voiceSpeed').value) });
         }
 
         // 답변 팝업 열기
         function showAnswer() {
             if (currentQuestionIndex >= 0 && currentQuestionIndex < shuffledQuestions.length) {
                 if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
+                    OpicVoice.stop();
                 }
                 answerTextElement.textContent = shuffledQuestions[currentQuestionIndex].a;
                 const cur = shuffledQuestions[currentQuestionIndex];
@@ -282,26 +135,21 @@
         // 답변 팝업 닫기
         function closeModal() {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
+                OpicVoice.stop();
             }
             answerModal.classList.add('hidden');
         }
 
         // 답변 음성으로 읽어주기
         function speakAnswer() {
-            if (answerTextElement.textContent && 'speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(answerTextElement.textContent);
-                utterance.lang = 'en-US'; // 영어로 설정
-                utterance.rate = 0.8; // 음성 속도를 0.8배로 설정 (기본값 1.0)
-                window.speechSynthesis.speak(utterance);
-            }
+            const item = shuffledQuestions[currentQuestionIndex];
+            if (item) OpicVoice.play(item.id, 'a', { rate: Number(document.getElementById('voiceSpeed').value) });
         }
 
         // 다음 질문으로 이동
         function nextQuestion() {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
+                OpicVoice.stop();
             }
             currentQuestionIndex++;
             updateUI();
@@ -311,7 +159,7 @@
         function prevQuestion() {
             if (currentQuestionIndex > 0) {
                 if ('speechSynthesis' in window) {
-                    window.speechSynthesis.cancel();
+                    OpicVoice.stop();
                 }
                 currentQuestionIndex--;
                 updateUI();
@@ -328,10 +176,12 @@
             selected.forEach(group => { shuffleArray(group.questions); shuffledQuestions = shuffledQuestions.concat(group.questions); });
             currentQuestionIndex = 0;
             updateUI();
+            document.getElementById('questionMeta').scrollIntoView({ behavior: 'smooth', block: 'start' });
             startButton.textContent = "시작";
         });
 
-        ['sourceFilter','topicFilter'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if('speechSynthesis' in window)window.speechSynthesis.cancel();closeModal();currentQuestionIndex=-1;shuffledQuestions=[];startButton.textContent='시작';document.querySelector('#questionMeta').textContent='선택한 범위로 연습을 시작하세요.';updateUI();}));
+        ['sourceFilter','topicFilter'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{if('speechSynthesis' in window)OpicVoice.stop();closeModal();currentQuestionIndex=-1;shuffledQuestions=[];startButton.textContent='시작';document.querySelector('#questionMeta').textContent='선택한 범위로 연습을 시작하세요.';updateUI();}));
+        answerModal.addEventListener('click', e => { if (e.target === answerModal) closeModal(); });
         // 다음 질문 버튼 클릭 이벤트
         nextButton.addEventListener('click', nextQuestion);
 
@@ -347,14 +197,14 @@
         // 창이 닫힐 때 음성 중지
         window.addEventListener('beforeunload', () => {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
+                OpicVoice.stop();
             }
         });
 
         // 페이지가 숨겨질 때도 음성 중지 (탭 전환 등)
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && 'speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
+                OpicVoice.stop();
             }
         });
 
@@ -400,6 +250,7 @@
         // ESC 키로 툴팁 숨기기
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                if (!answerModal.classList.contains('hidden')) closeModal();
                 translationTooltip.classList.remove('show');
             }
         });
